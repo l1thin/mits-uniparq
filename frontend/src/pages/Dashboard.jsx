@@ -1,16 +1,19 @@
 import React, { useState } from "react";
 import axios from "axios";
+import "./Dashboard.css";
 
 function Dashboard() {
   const [image, setImage] = useState(null);
+  const [imageName, setImageName] = useState("");
   const [plate, setPlate] = useState("");
   const [vehicle, setVehicle] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // Upload Image + OCR
   const handleScan = async () => {
     if (!image) {
-      alert("Please upload an image first.");
+      setError("Please upload an image first.");
       return;
     }
 
@@ -19,6 +22,7 @@ function Dashboard() {
 
     try {
       setLoading(true);
+      setError("");
 
       const res = await axios.post(
         "http://localhost:5000/scan", // Backend OCR API
@@ -29,56 +33,128 @@ function Dashboard() {
       setLoading(false);
     } catch (error) {
       console.error(error);
-      alert("OCR Failed");
+      setError("OCR scanning failed. Please try again.");
       setLoading(false);
     }
   };
 
   // Fetch vehicle details
   const handleSearch = async () => {
+    if (!plate.trim()) {
+      setError("Please enter a plate number.");
+      return;
+    }
+
     try {
+      setError("");
       const res = await axios.get(
         `http://localhost:5000/vehicle/${plate}`
       );
       setVehicle(res.data);
     } catch (error) {
-      alert("Vehicle Not Found");
+      setError("Vehicle not found in the database.");
+      setVehicle(null);
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setImageName(file.name);
     }
   };
 
   return (
     <div className="dashboard-container">
-      <h2>Security Dashboard</h2>
+      <div className="dashboard-header">
+        <h2>Security Dashboard</h2>
+        <p className="dashboard-subtitle">License Plate Recognition & Vehicle Verification</p>
+      </div>
 
-      {/* Image Upload */}
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setImage(e.target.files[0])}
-      />
+      {error && <div className="alert alert-error">{error}</div>}
 
-      <button onClick={handleScan}>
-        {loading ? "Scanning..." : "Scan Number Plate"}
-      </button>
+      <div className="dashboard-content">
+        {/* Image Upload Section */}
+        <div className="card">
+          <h3>Step 1: Capture Vehicle Image</h3>
+          
+          <div className="file-upload">
+            <input
+              type="file"
+              id="image-input"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="file-input"
+            />
+            <label htmlFor="image-input" className="file-label">
+              <span className="upload-icon">📷</span>
+              <span className="upload-text">
+                {imageName || "Click to upload or drag image"}
+              </span>
+            </label>
+          </div>
 
-      {/* Manual / Auto Plate Input */}
-      <input
-        placeholder="Detected Plate Number"
-        value={plate}
-        onChange={(e) => setPlate(e.target.value)}
-      />
-
-      <button onClick={handleSearch}>Search Vehicle</button>
-
-      {/* Vehicle Details */}
-      {vehicle && (
-        <div className="vehicle-card">
-          <h3>Owner Details</h3>
-          <p><b>Name:</b> {vehicle.name}</p>
-          <p><b>Department:</b> {vehicle.department}</p>
-          <p><b>Contact:</b> Hidden (Use Official Security Line)</p>
+          <button onClick={handleScan} className="btn-scan" disabled={loading}>
+            {loading ? (
+              <>
+                <span className="spinner-small"></span> Scanning...
+              </>
+            ) : (
+              "🔍 Scan Number Plate"
+            )}
+          </button>
         </div>
-      )}
+
+        {/* Plate Input Section */}
+        <div className="card">
+          <h3>Step 2: Enter/Verify Plate Number</h3>
+          
+          <div className="form-group">
+            <label htmlFor="plate-input">License Plate Number</label>
+            <input
+              id="plate-input"
+              type="text"
+              placeholder="e.g., AB12CD3456"
+              value={plate}
+              onChange={(e) => setPlate(e.target.value.toUpperCase())}
+              className="plate-input"
+            />
+          </div>
+
+          <button onClick={handleSearch} className="btn-search">
+            🔎 Search Vehicle
+          </button>
+        </div>
+
+        {/* Vehicle Details Section */}
+        {vehicle && (
+          <div className="card vehicle-card">
+            <h3>✓ Vehicle Information</h3>
+            
+            <div className="vehicle-details">
+              <div className="detail-item">
+                <span className="detail-label">Owner Name:</span>
+                <span className="detail-value">{vehicle.name}</span>
+              </div>
+              
+              <div className="detail-item">
+                <span className="detail-label">Department:</span>
+                <span className="detail-value">{vehicle.department}</span>
+              </div>
+              
+              <div className="detail-item">
+                <span className="detail-label">Status:</span>
+                <span className="detail-value status-approved">✓ Approved</span>
+              </div>
+
+              <p className="security-note">
+                📞 For additional information, contact Official Security Line
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
