@@ -1,4 +1,3 @@
-// App.js
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
@@ -7,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import AdminPanel from "./pages/AdminPanel";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
+import ClearwayApp from "./components/ClearwayApp";
 
 function App() {
   return (
@@ -14,9 +14,11 @@ function App() {
       <Navbar />
 
       <Routes>
-
-        {/* Public Route */}
+        {/* Root: legacy login page (keeps existing behavior) */}
         <Route path="/" element={<Login />} />
+
+        {/* Also provide the new Clearway UI at /clearway for the converted design */}
+        <Route path="/clearway" element={<ClearwayApp />} />
 
         {/* Security Dashboard */}
         <Route
@@ -40,10 +42,10 @@ function App() {
 
         {/* Redirect Unknown Routes */}
         <Route path="*" element={<Navigate to="/" />} />
-
       </Routes>
     </Router>
   );
 }
 
 export default App;
+
