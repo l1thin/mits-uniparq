@@ -17,7 +17,7 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <h1>CLEARWAY</h1>
+        <h1>UniParQ</h1>
         <span className="brand-tagline">Vehicle Security System</span>
       </div>
 

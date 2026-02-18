@@ -1,6 +1,6 @@
 .login-wrapper {
   min-height: 100vh;
-  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  background: linear-gradient(135deg, var(--primary-red) 0%, var(--dark-red) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -37,7 +37,7 @@
 }
 
 .login-header h1 {
-  color: #dc2626;
+  color: var(--white);
   font-size: 2.5rem;
   font-weight: 700;
   letter-spacing: 2px;
@@ -83,14 +83,14 @@
 }
 
 .role-select:hover {
-  border-color: #dc2626;
+  border-color: var(--primary-red);
   background-color: #fff;
 }
 
 .role-select:focus {
   outline: none;
-  border-color: #dc2626;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  border-color: var(--primary-red);
+  box-shadow: 0 0 0 3px rgba(14,165,164,0.12);
 }
 
 .login-button {
@@ -108,18 +108,21 @@
   margin-bottom: 1rem;
 }
 
+.login-button {
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, var(--primary-red) 0%, var(--dark-red) 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+  margin-bottom: 1rem;
+}
 .login-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
-}
-
-.login-button:active {
-  transform: translateY(0);
-}
-
-.login-footer {
-  text-align: center;
-  color: #999;
-  font-size: 0.85rem;
-  margin: 0;
+  box-shadow: 0 8px 20px rgba(14,165,164,0.22);
 }

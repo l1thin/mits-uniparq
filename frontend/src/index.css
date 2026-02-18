@@ -20,15 +20,16 @@ code {
     monospace;
 }
 
-/* Color Scheme */
+/* Color Scheme (updated to a calmer teal/indigo palette for UniParQ) */
 :root {
-  --primary-red: #dc2626;
-  --dark-red: #991b1b;
-  --light-red: #fee2e2;
+  /* Primary color (teal) */
+  --primary-red: #0ea5a4; /* originally primary-red; name kept to minimize edits */
+  --dark-red: #075985; /* darker teal/indigo for gradients */
+  --light-red: #e6fffa; /* soft teal-tint for light backgrounds */
   --white: #ffffff;
   --gray-light: #f9fafb;
   --gray-medium: #e5e7eb;
-  --gray-dark: #4b5563;
+  --gray-dark: #334155;
 }
 
 /* Navbar Styles */

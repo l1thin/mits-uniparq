@@ -20,7 +20,7 @@ function Login() {
       <div className="login-container">
         <div className="login-card">
           <div className="login-header">
-            <h1>CLEARWAY</h1>
+            <h1>UniParQ</h1>
             <p className="login-subtitle">Vehicle Clearance System</p>
           </div>
 
