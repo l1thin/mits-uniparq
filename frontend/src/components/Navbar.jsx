@@ -37,11 +37,11 @@ function Navbar() {
 
             {showDropdown && (
               <div className="dropdown-content">
-                <a href="#profile" className="dropdown-item">👤 Profile</a>
-                <a href="#settings" className="dropdown-item">⚙️ Settings</a>
+                <a href="#profile" className="dropdown-item">Profile</a>
+                <a href="#settings" className="dropdown-item">Settings</a>
                 <div className="dropdown-divider"></div>
                 <button onClick={handleLogout} className="dropdown-item logout">
-                  🚪 Logout
+                  Logout
                 </button>
               </div>
             )}
