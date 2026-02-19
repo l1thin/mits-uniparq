@@ -1,14 +1,46 @@
 import React, { useState } from "react";
 import "./Login.css";
+import { supabase } from "../supabaseClient";
 
 function Login() {
   const [role, setRole] = useState("security");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    // Fake login (for now)
-    localStorage.setItem("role", role);
+  const handleLogin = async () => {
+    // 1️⃣ Login using Supabase Auth
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    if (role === "admin") {
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    const userId = data.user.id;
+
+    // 2️⃣ Fetch role from profiles table
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .single();
+
+    if (profileError) {
+      alert("Role not found");
+      return;
+    }
+
+    // 3️⃣ Check if selected role matches DB role
+    if (profile.role !== role) {
+      alert("Incorrect role selected");
+      return;
+    }
+
+    // 4️⃣ Redirect based on role
+    if (profile.role === "admin") {
       window.location.href = "/admin";
     } else {
       window.location.href = "/dashboard";
@@ -17,7 +49,6 @@ function Login() {
 
   return (
     <div className="login-wrapper">
-      {/* department logo in bottom‑left; ensure file placed at public/dept-logo.png */}
       <img
         src="/dept-logo.png"
         alt="Department Logo"
@@ -28,6 +59,25 @@ function Login() {
           <div className="login-header">
             <h1>UniParQ</h1>
             <p className="login-subtitle">Vehicle Clearance System</p>
+          </div>
+
+          {/* 🔹 Added email & password inputs (logic only, no design changes) */}
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              className="role-select"
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              className="role-select"
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </div>
 
           <div className="form-group">
@@ -48,7 +98,7 @@ function Login() {
           </button>
 
           <p className="login-footer">
-            Demo Credentials • No password required for this demo
+            Use real Supabase credentials
           </p>
         </div>
       </div>
