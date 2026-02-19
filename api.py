@@ -7,32 +7,14 @@ import re
 
 app = FastAPI()
 
-# Load trained YOLO model
-model = YOLO("runs/detect/train/weights/best.pt")  # change path if train2/train3
+# Load YOLO model
+model = YOLO("C:\\Users\\adars\\Desktop\\mits-uniparq\\best.pt")
 
-# Load OCR model
-reader = easyocr.Reader(['en'])
-
-
-# -------- Clean Plate Function --------
-def clean_plate(text):
-    text = text.upper()
-    text = text.replace(" ", "")
-    text = text.replace("IND", "")  # remove blue region text
-
-    # remove non-alphanumeric characters
-    text = re.sub(r'[^A-Z0-9]', '', text)
-
-    # match Indian format (2 letters + 2 digits + 4 digits)
-    match = re.search(r'[A-Z]{2}\d{2}\d{4}', text)
-
-    if match:
-        return match.group(0)
-
-    return text
+# Load OCR
+reader = easyocr.Reader(['en'], gpu=False)
 
 
-# -------- Detect Endpoint --------
+# -------- DETECT ENDPOINT --------
 @app.post("/detect")
 async def detect_plate(file: UploadFile = File(...)):
 
@@ -46,41 +28,47 @@ async def detect_plate(file: UploadFile = File(...)):
         for box in r.boxes.xyxy:
             x1, y1, x2, y2 = map(int, box)
 
-            # Add padding
-            pad = 20
-            x1 = max(0, x1 - pad)
-            y1 = max(0, y1 - pad)
-            x2 = min(img.shape[1], x2 + pad)
-            y2 = min(img.shape[0], y2 + pad)
+            # Dynamic padding
+            h, w = img.shape[:2]
+            bw = x2 - x1
+            bh = y2 - y1
+
+            pad_x = int(bw * 0.25)
+            pad_y = int(bh * 0.25)
+
+            x1 = max(0, x1 - pad_x)
+            y1 = max(0, y1 - pad_y)
+            x2 = min(w, x2 + pad_x)
+            y2 = min(h, y2 + pad_y)
 
             plate_crop = img[y1:y2, x1:x2]
 
-            # Resize for better OCR
-            plate_crop = cv2.resize(
-                plate_crop, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC
-            )
+            # Resize to stable resolution
+            plate_crop = cv2.resize(plate_crop, (800, 300))
 
             # Convert to grayscale
             gray = cv2.cvtColor(plate_crop, cv2.COLOR_BGR2GRAY)
 
-            # Noise reduction
-            gray = cv2.bilateralFilter(gray, 11, 17, 17)
+            # Contrast enhancement (very important)
+            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+            gray = clahe.apply(gray)
 
-            # Thresholding
-            _, thresh = cv2.threshold(
-                gray, 150, 255, cv2.THRESH_BINARY
+            # Light blur to remove texture noise
+            gray = cv2.GaussianBlur(gray, (3, 3), 0)
+
+            # OCR WITHOUT thresholding
+            ocr_result = reader.readtext(
+                gray,
+                allowlist='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+                detail=0
             )
-
-            # OCR
-            ocr_result = reader.readtext(thresh, detail=0)
 
             if ocr_result:
                 full_text = "".join(ocr_result)
-                plate_number = clean_plate(full_text)
+                full_text = full_text.replace("IND", "")
 
                 return {
-                    "plate_number": plate_number,
                     "raw_text": full_text
                 }
 
-    return {"plate_number": None}
+    return {"raw_text": ""}
