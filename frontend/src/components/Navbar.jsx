@@ -50,13 +50,13 @@ function Navbar() {
         )}
       </div>
 
-      {/* title immediately after left logo */}
+      
       <div className="navbar-title">
         <h1>UniParQ</h1>
         <span className="brand-tagline">Vehicle Security System</span>
       </div>
 
-      {/* right-group containing only the dept logo */}
+      
       <div className="right-group">
         <img src="/dept-logo.png" alt="Department Logo" className="navbar-dept-logo" />
       </div>
