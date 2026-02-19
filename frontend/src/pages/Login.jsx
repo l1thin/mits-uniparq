@@ -17,6 +17,12 @@ function Login() {
 
   return (
     <div className="login-wrapper">
+      {/* department logo in bottom‑left; ensure file placed at public/dept-logo.png */}
+      <img
+        src="/dept-logo.png"
+        alt="Department Logo"
+        className="dept-logo"
+      />
       <div className="login-container">
         <div className="login-card">
           <div className="login-header">

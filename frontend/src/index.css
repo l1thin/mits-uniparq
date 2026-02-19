@@ -22,10 +22,10 @@ code {
 
 /* Color Scheme (updated to a calmer teal/indigo palette for UniParQ) */
 :root {
-  /* Primary color (teal) */
-  --primary-red: #0ea5a4; /* originally primary-red; name kept to minimize edits */
-  --dark-red: #075985; /* darker teal/indigo for gradients */
-  --light-red: #e6fffa; /* soft teal-tint for light backgrounds */
+  /* Primary color (red) */
+  --primary-red: #dc2626; /* matches dashboard gradient start */
+  --dark-red: #991b1b; /* darker red for gradients and accents */
+  --light-red: #fee2e2; /* soft red-tint for light backgrounds */
   --white: #ffffff;
   --gray-light: #f9fafb;
   --gray-medium: #e5e7eb;
