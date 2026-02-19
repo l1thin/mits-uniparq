@@ -14,7 +14,7 @@ function Navbar() {
     return role === "admin" ? "Administrator" : "Security Personnel";
   };
 
-  return (
+  return ( 
     <nav className="navbar">
       <div className="navbar-brand">
         <h1>UniParQ</h1>
