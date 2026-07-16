@@ -43,10 +43,10 @@ serve(async (req) => {
       ocrData.ParsedResults.length > 0 &&
       ocrData.ParsedResults[0].ParsedText
     ) {
-      detectedText = ocrData.ParsedResults[0].ParsedText.trim();
+      detectedText = ocrData.ParsedResults[0].ParsedText.replace(/[^a-zA-Z0-9]/g, "");
     }
 
-    if (detectedText.length < 6) {
+    if (detectedText.length < 3) {
       return new Response(
         JSON.stringify({ error: "Could not detect a valid plate (too short)" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
