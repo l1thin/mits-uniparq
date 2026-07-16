@@ -46,27 +46,18 @@ function Dashboard() {
 
       const imageUrl = urlData.publicUrl;
 
-      // 3. Get JWT from session
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session.access_token;
-
-      // 4. Call scan-plate endpoint with JSON
-      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:54321";
-      const response = await fetch(
-        API_URL + "/functions/scan-plate",
+      // 3. Call scan-plate endpoint via Supabase Edge Function directly
+      const { data: result, error: functionError } = await supabase.functions.invoke(
+        "scan-plate",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ imageUrl }),
+          body: { imageUrl },
         }
       );
 
-      const result = await response.json();
-
-      if (result.error) {
+      if (functionError) {
+        throw new Error(functionError.message || "Failed to scan plate");
+      }
+      if (result && result.error) {
         throw new Error(result.error);
       }
 
