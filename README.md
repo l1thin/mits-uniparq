@@ -150,6 +150,14 @@ git push origin supabase
 | ------------------ | ------------------------- | --------------------- |
 | `REACT_APP_API_URL`| Backend server URL        | `http://localhost:54321` |
 
+## Collaborators
+
+- Mushab Mahin
+- Abhijith PM
+- Adarsh M Nair
+- Lithin Jose
+- Anirudh RV
+
 ## License
 
 This project is for educational purposes at MITS.
