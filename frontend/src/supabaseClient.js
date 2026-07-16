@@ -55,8 +55,14 @@ function createTableQuery(table) {
         });
 
         const data = await apiFetch(`/rest/v1/${table}?${params.toString()}`);
-        if (_single) {
-          resolve({ data: data[0] || null, error: data.length === 0 ? { message: "Row not found" } : null });
+        if (data && data.code && data.message) {
+          resolve({ data: null, error: { message: data.message } });
+        } else if (data && data.error) {
+          resolve({ data: null, error: { message: typeof data.error === "string" ? data.error : "Unknown error" } });
+        } else if (!Array.isArray(data)) {
+          resolve({ data: null, error: { message: "Invalid response format from server" } });
+        } else if (_single) {
+          resolve({ data: data.length > 0 ? data[0] : null, error: data.length === 0 ? { message: "Row not found" } : null });
         } else {
           resolve({ data, error: null });
         }
@@ -85,7 +91,6 @@ export const supabase = {
         }
 
         setToken(data.data.session.access_token);
-        localStorage.setItem("role", data.data.session.user.role);
 
         return { data: data.data, error: null };
       } catch (err) {

@@ -1,12 +1,10 @@
 const express = require("express");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const pool = require("../config/db");
-
 const router = express.Router();
 
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+
 // POST /auth/v1/token?grant_type=password
-// Mimics Supabase signInWithPassword — returns a session object
 router.post("/auth/v1/token", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -18,88 +16,90 @@ router.post("/auth/v1/token", async (req, res) => {
       });
     }
 
-    const result = await pool.query(
-      "SELECT id, email, password_hash, role FROM profiles WHERE email = $1",
-      [email]
-    );
+    // Call Supabase Auth API
+    const authResponse = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ email, password })
+    });
 
-    if (result.rows.length === 0) {
-      return res.status(401).json({
+    const authData = await authResponse.json();
+
+    if (!authResponse.ok) {
+      return res.status(authResponse.status).json({
         data: { session: null, user: null },
-        error: "Invalid login credentials",
+        error: authData.error_description || authData.msg || "Invalid login credentials",
       });
     }
 
-    const user = result.rows[0];
-    const validPassword = await bcrypt.compare(password, user.password_hash);
-
-    if (!validPassword) {
-      return res.status(401).json({
-        data: { session: null, user: null },
-        error: "Invalid login credentials",
-      });
-    }
-
-    const token = jwt.sign(
-      { sub: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-
+    // Wrap the response so it matches what the frontend `supabaseClient.js` expects
     res.json({
       data: {
         session: {
-          access_token: token,
-          refresh_token: "mock-refresh-token",
-          expires_in: 3600,
-          token_type: "bearer",
+          access_token: authData.access_token,
+          refresh_token: authData.refresh_token,
+          expires_in: authData.expires_in,
+          token_type: authData.token_type,
           user: {
-            id: user.id,
-            email: user.email,
-            role: user.role,
+            id: authData.user.id,
+            email: authData.user.email,
           },
         },
         user: {
-          id: user.id,
-          email: user.email,
+          id: authData.user.id,
+          email: authData.user.email,
         },
       },
       error: null,
     });
   } catch (err) {
-    console.error("Auth error:", err);
+    console.error("Auth proxy error:", err);
     res.status(500).json({
       data: { session: null, user: null },
-      error: "Internal server error",
+      error: "Internal server error connecting to remote auth",
     });
   }
 });
 
 // GET /auth/v1/session
-// Returns the current session from the JWT in the Authorization header
 router.get("/auth/v1/session", async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.json({ data: { session: null }, error: null });
   }
 
-  const token = authHeader.split(" ")[1];
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Call Supabase to validate token and get user
+    const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": authHeader
+      }
+    });
+
+    if (!userRes.ok) {
+      return res.json({ data: { session: null }, error: "Invalid token" });
+    }
+
+    const userData = await userRes.json();
+
     res.json({
       data: {
         session: {
-          access_token: token,
+          access_token: authHeader.split(" ")[1],
           user: {
-            id: decoded.sub,
-            email: decoded.email,
+            id: userData.id,
+            email: userData.email,
           },
         },
       },
       error: null,
     });
   } catch (err) {
-    res.json({ data: { session: null }, error: "Invalid token" });
+    res.json({ data: { session: null }, error: "Internal server error" });
   }
 });
 

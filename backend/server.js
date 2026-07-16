@@ -1,4 +1,20 @@
 require("dotenv").config();
+
+// Validate required environment variables
+const requiredEnvVars = [
+  "PORT",
+  "DATABASE_URL",
+  "JWT_SECRET",
+  "SUPABASE_EDGE_FUNCTION_URL",
+  "SUPABASE_ANON_KEY"
+];
+
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error(`FATAL ERROR: Missing required environment variable: ${envVar}`);
+    process.exit(1);
+  }
+}
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -25,8 +41,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Auth endpoints (no auth required)
 app.use("/", authRoutes);
 
-// Vehicle / Profile endpoints (auth required)
-app.use("/", authMiddleware, vehicleRoutes);
+// Vehicle / Profile endpoints (auth handled by remote Supabase PostgREST)
+app.use("/", vehicleRoutes);
 
 // Functions / Storage endpoints (auth handled inside)
 app.use("/", functionRoutes);

@@ -2,17 +2,12 @@ import React, { useState } from "react";
 import "./Navbar.css";
 
 function Navbar() {
-  const role = localStorage.getItem("role");
   const [showDropdown, setShowDropdown] = useState(false);
+  const isLoggedIn = !!localStorage.getItem("access_token");
 
   const handleLogout = () => {
-    localStorage.removeItem("role");
     localStorage.removeItem("access_token");
     window.location.href = "/";
-  };
-
-  const getRoleDisplay = () => {
-    return role === "admin" ? "Administrator" : "Security Personnel";
   };
 
   return (
@@ -20,12 +15,8 @@ function Navbar() {
       <img src="/logo-3.png" alt="University Logo" className="navbar-univ-logo left-logo" />
 
       <div className="navbar-actions">
-        {role && (
+        {isLoggedIn && (
           <>
-            <div className="user-info">
-              <span className="user-role">{getRoleDisplay()}</span>
-            </div>
-
             <div className="dropdown-menu">
               <button
                 className="user-menu-btn"

@@ -1,16 +1,26 @@
-const jwt = require("jsonwebtoken");
-
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Unauthorized" });
   }
-  const token = authHeader.split(" ")[1];
+  
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    const response = await fetch(`${process.env.SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        "apikey": process.env.SUPABASE_ANON_KEY,
+        "Authorization": authHeader
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(401).json({ error: "Invalid Token" });
+    }
+
+    const user = await response.json();
+    req.user = user;
     next();
   } catch (err) {
+    console.error("Auth middleware error:", err);
     return res.status(401).json({ error: "Invalid Token" });
   }
 };

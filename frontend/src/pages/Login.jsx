@@ -3,7 +3,6 @@ import "./Login.css";
 import { supabase } from "../supabaseClient";
 
 function Login() {
-  const [role, setRole] = useState("security");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -18,29 +17,7 @@ function Login() {
       return;
     }
 
-    const userId = data.user.id;
-
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", userId)
-      .single();
-
-    if (profileError) {
-      alert("Role not found");
-      return;
-    }
-
-    if (profile.role !== role) {
-      alert("Incorrect role selected");
-      return;
-    }
-
-    if (profile.role === "admin") {
-      window.location.href = "/admin";
-    } else {
-      window.location.href = "/dashboard";
-    }
+    window.location.href = "/dashboard";
   };
 
   return (
@@ -75,26 +52,9 @@ function Login() {
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="role-select">Select Your Role</label>
-            <select
-              id="role-select"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="role-select"
-            >
-              <option value="security">Security Personnel</option>
-              <option value="admin">Administrator</option>
-            </select>
-          </div>
-
           <button onClick={handleLogin} className="login-button">
             Sign In
           </button>
-
-          <p className="login-footer">
-            admin@mits.ac.in / admin123 &middot; security@mits.ac.in / security123
-          </p>
         </div>
       </div>
     </div>

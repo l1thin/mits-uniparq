@@ -1,104 +1,109 @@
 const express = require("express");
-const pool = require("../config/db");
-
 const router = express.Router();
 
-// GET /rest/v1/profiles?id=eq.{userId}&select=role
-// Mimics Supabase PostgREST query: supabase.from("profiles").select("role").eq("id", userId).single()
-router.get("/rest/v1/profiles", async (req, res) => {
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+
+// Generic Proxy for all /rest/v1/* requests
+const forwardToSupabase = async (req, res, path) => {
   try {
-    const { id, select } = req.query;
-
-    if (id && id.startsWith("eq.")) {
-      const userId = id.replace("eq.", "");
-      const selectFields = select || "role";
-      const fields = selectFields.split(",").map((f) => f.trim());
-
-      const result = await pool.query(
-        `SELECT ${fields.join(", ")} FROM profiles WHERE id = $1`,
-        [userId]
-      );
-
-      if (result.rows.length === 0) {
-        return res.json([]);
-      }
-
-      return res.json(result.rows);
+    const url = new URL(`${SUPABASE_URL}${path}`);
+    
+    // Forward query params
+    for (const [key, val] of Object.entries(req.query)) {
+      url.searchParams.append(key, val);
+    }
+    
+    const headers = {
+      "apikey": SUPABASE_ANON_KEY,
+      "Content-Type": "application/json"
+    };
+    
+    if (req.headers.authorization) {
+      headers["Authorization"] = req.headers.authorization;
+    } else {
+      headers["Authorization"] = `Bearer ${SUPABASE_ANON_KEY}`;
     }
 
-    // Fallback: return all profiles (admin use case)
-    const result = await pool.query("SELECT * FROM profiles");
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Profiles query error:", err);
-    res.status(500).json({ error: "Database query failed" });
-  }
-});
+    const options = {
+      method: req.method,
+      headers: headers
+    };
 
-// POST /rest/v1/rpc/secure_lookup
-// Mimics Supabase RPC: supabase.rpc("secure_lookup", { input_plate })
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      options.body = JSON.stringify(req.body);
+    }
+
+    const response = await fetch(url.toString(), options);
+    const text = await response.text();
+    
+    if (text) {
+      try {
+        res.status(response.status).json(JSON.parse(text));
+      } catch(e) {
+        res.status(response.status).send(text);
+      }
+    } else {
+      res.status(response.status).send();
+    }
+  } catch (err) {
+    console.error(`Supabase Proxy Error on ${path}:`, err);
+    res.status(500).json({ error: "Failed to communicate with remote database" });
+  }
+};
+
+// Intercept the secure_lookup RPC and translate it to a standard REST query
 router.post("/rest/v1/rpc/secure_lookup", async (req, res) => {
   try {
     const { input_plate } = req.body;
+    if (!input_plate) return res.status(400).json({ error: "Missing input_plate" });
 
-    if (!input_plate) {
-      return res.status(400).json({ error: "input_plate is required" });
+    // Translate to a standard GET on the vehicles table
+    const url = new URL(`${SUPABASE_URL}/rest/v1/vehicles`);
+    url.searchParams.append("plate", `eq.${input_plate.toUpperCase()}`);
+    url.searchParams.append("select", "full_name,department,phone");
+
+    const headers = {
+      "apikey": SUPABASE_ANON_KEY,
+      "Content-Type": "application/json"
+    };
+
+    if (req.headers.authorization) {
+      headers["Authorization"] = req.headers.authorization;
+    } else {
+      headers["Authorization"] = `Bearer ${SUPABASE_ANON_KEY}`;
     }
 
-    const result = await pool.query(
-      "SELECT full_name, department, phone FROM vehicles WHERE plate = $1",
-      [input_plate.toUpperCase()]
-    );
+    console.log("Interceptor sending GET to:", url.toString());
+    console.log("With headers:", headers);
 
-    res.json(result.rows);
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: headers
+    });
+
+    console.log("Supabase response status:", response.status);
+    const text = await response.text();
+    console.log("Supabase response text:", text);
+
+    if (text) {
+      try {
+        res.status(response.status).json(JSON.parse(text));
+      } catch(e) {
+        res.status(response.status).send(text);
+      }
+    } else {
+      res.status(response.status).send();
+    }
   } catch (err) {
     console.error("Secure lookup error:", err);
-    res.status(500).json({ error: "Lookup failed" });
+    res.status(500).json({ error: "Failed to perform secure lookup" });
   }
 });
 
-// POST /rest/v1/vehicles
-// Insert a new vehicle record (admin only, auth middleware applied in server.js)
-router.post("/rest/v1/vehicles", async (req, res) => {
-  try {
-    const { plate, full_name, department, phone } = req.body;
-
-    if (!plate || !full_name || !department) {
-      return res.status(400).json({
-        error: "plate, full_name, and department are required",
-      });
-    }
-
-    const result = await pool.query(
-      `INSERT INTO vehicles (plate, full_name, department, phone)
-       VALUES ($1, $2, $3, $4)
-       ON CONFLICT (plate) DO UPDATE
-       SET full_name = EXCLUDED.full_name,
-           department = EXCLUDED.department,
-           phone = EXCLUDED.phone
-       RETURNING *`,
-      [plate.toUpperCase(), full_name, department, phone || null]
-    );
-
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error("Vehicle insert error:", err);
-    res.status(500).json({ error: "Failed to insert vehicle" });
-  }
-});
-
-// GET /rest/v1/vehicles
-// List all vehicles (admin use case)
-router.get("/rest/v1/vehicles", async (req, res) => {
-  try {
-    const result = await pool.query(
-      "SELECT * FROM vehicles ORDER BY created_at DESC"
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Vehicle list error:", err);
-    res.status(500).json({ error: "Failed to list vehicles" });
-  }
+// Map all REST requests directly to Supabase PostgREST API
+router.all(/^\/rest\/v1\/.*/, (req, res) => {
+  forwardToSupabase(req, res, req.path);
 });
 
 module.exports = router;

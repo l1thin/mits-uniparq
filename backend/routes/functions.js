@@ -15,29 +15,47 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
+const memoryUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+
 // POST /functions/scan-plate
-// Mock OCR endpoint — receives an image, returns a static plate number
-router.post("/functions/scan-plate", authMiddleware, upload.single("image"), (req, res) => {
+// Calls Supabase Edge Function for OCR
+router.post("/functions/scan-plate", authMiddleware, memoryUpload.single("image"), async (req, res) => {
   try {
-    let imageUrl = null;
-
-    // Handle both multipart form data and JSON body
-    if (req.file) {
-      imageUrl = `/uploads/${req.file.filename}`;
-    } else if (req.body && req.body.imageUrl) {
-      imageUrl = req.body.imageUrl;
+    if (!req.file) {
+      return res.status(400).json({ error: "Image file is required" });
     }
 
-    if (!imageUrl) {
-      return res.status(400).json({ error: "imageUrl is required" });
+    const { SUPABASE_EDGE_FUNCTION_URL, SUPABASE_ANON_KEY } = process.env;
+
+    if (!SUPABASE_EDGE_FUNCTION_URL || !SUPABASE_ANON_KEY) {
+      console.error("Missing SUPABASE_EDGE_FUNCTION_URL or SUPABASE_ANON_KEY in environment variables");
+      return res.status(500).json({ error: "Server configuration error" });
     }
 
-    // Mock OCR result — returns a static plate number >= 6 chars
-    const mockPlate = "KL07CD1234";
+    const base64Image = req.file.buffer.toString("base64");
 
+    const response = await fetch(SUPABASE_EDGE_FUNCTION_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+      },
+      body: JSON.stringify({
+        image: base64Image,
+        mimeType: req.file.mimetype
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Edge function error (${response.status}):`, errorText);
+      return res.status(response.status).json({ error: "Failed to process image through edge function" });
+    }
+
+    const data = await response.json();
+    
     res.json({
-      plate: mockPlate,
-      result: null,
+      plate: data.plate
     });
   } catch (err) {
     console.error("Scan plate error:", err);
