@@ -1,0 +1,4 @@
+project_id = "your_project_id"
+
+[functions.scan-plate]
+verify_jwt = false
