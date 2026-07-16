@@ -7,6 +7,7 @@ function Navbar() {
 
   const handleLogout = () => {
     localStorage.removeItem("role");
+    localStorage.removeItem("access_token");
     window.location.href = "/";
   };
 
@@ -14,12 +15,10 @@ function Navbar() {
     return role === "admin" ? "Administrator" : "Security Personnel";
   };
 
-  return ( 
+  return (
     <nav className="navbar">
-      {/* university logo on the extreme left */}
       <img src="/logo-3.png" alt="University Logo" className="navbar-univ-logo left-logo" />
 
-      {/* keep actions near left/center; right group will be pushed to extreme right */}
       <div className="navbar-actions">
         {role && (
           <>
@@ -32,7 +31,7 @@ function Navbar() {
                 className="user-menu-btn"
                 onClick={() => setShowDropdown(!showDropdown)}
               >
-                👤
+                &#128100;
               </button>
 
               {showDropdown && (
@@ -50,13 +49,11 @@ function Navbar() {
         )}
       </div>
 
-      
       <div className="navbar-title">
         <h1>UniParQ</h1>
         <span className="brand-tagline">Vehicle Security System</span>
       </div>
 
-      
       <div className="right-group">
         <img src="/dept-logo.png" alt="Department Logo" className="navbar-dept-logo" />
       </div>

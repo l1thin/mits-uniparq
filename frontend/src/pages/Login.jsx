@@ -8,7 +8,6 @@ function Login() {
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-    // 1️⃣ Login using Supabase Auth
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -21,7 +20,6 @@ function Login() {
 
     const userId = data.user.id;
 
-    // 2️⃣ Fetch role from profiles table
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("role")
@@ -33,13 +31,11 @@ function Login() {
       return;
     }
 
-    // 3️⃣ Check if selected role matches DB role
     if (profile.role !== role) {
       alert("Incorrect role selected");
       return;
     }
 
-    // 4️⃣ Redirect based on role
     if (profile.role === "admin") {
       window.location.href = "/admin";
     } else {
@@ -61,7 +57,6 @@ function Login() {
             <p className="login-subtitle">Vehicle Clearance System</p>
           </div>
 
-          {/* 🔹 Added email & password inputs (logic only, no design changes) */}
           <div className="form-group">
             <label>Email</label>
             <input
@@ -98,7 +93,7 @@ function Login() {
           </button>
 
           <p className="login-footer">
-            Use real Supabase credentials
+            admin@mits.ac.in / admin123 &middot; security@mits.ac.in / security123
           </p>
         </div>
       </div>

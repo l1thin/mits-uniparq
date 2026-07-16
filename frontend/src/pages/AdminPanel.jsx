@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { supabase } from "../supabaseClient";
 import "./AdminPanel.css";
 
 function AdminPanel() {
@@ -6,37 +7,56 @@ function AdminPanel() {
     name: "",
     department: "",
     contact: "",
-    plate: ""
+    plate: "",
   });
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const handleChange = (field, value) => {
     setVehicle({ ...vehicle, [field]: value });
   };
 
-  const handleSubmit = () => {
-    // Validate inputs
+  const handleSubmit = async () => {
     if (!vehicle.name.trim() || !vehicle.department.trim() || !vehicle.plate.trim()) {
       setError("Please fill in all required fields.");
       setSuccess("");
       return;
     }
 
-    setSuccess("✓ Vehicle added successfully to the system!");
-    setError("");
-    console.log("Vehicle added:", vehicle);
+    try {
+      setSaving(true);
+      setError("");
+      setSuccess("");
 
-    // Reset form
-    setVehicle({
-      name: "",
-      department: "",
-      contact: "",
-      plate: ""
-    });
+      const { error: insertError } = await supabase
+        .from("vehicles")
+        .insert({
+          plate: vehicle.plate.toUpperCase(),
+          full_name: vehicle.name,
+          department: vehicle.department,
+          phone: vehicle.contact || null,
+        });
 
-    // Clear success message after 3 seconds
-    setTimeout(() => setSuccess(""), 3000);
+      if (insertError) {
+        throw new Error(insertError.message || "Failed to add vehicle");
+      }
+
+      setSuccess("Vehicle added successfully to the system!");
+
+      setVehicle({
+        name: "",
+        department: "",
+        contact: "",
+        plate: "",
+      });
+
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err.message || "Failed to add vehicle. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -101,15 +121,15 @@ function AdminPanel() {
             />
           </div>
 
-          <button onClick={handleSubmit} className="btn-submit">
-            ➕ Add Vehicle
+          <button onClick={handleSubmit} className="btn-submit" disabled={saving}>
+            {saving ? "Adding..." : "Add Vehicle"}
           </button>
         </div>
 
         <div className="card info-card">
           <h3>System Information</h3>
           <div className="info-section">
-            <p className="info-title">📋 Registration Guidelines</p>
+            <p className="info-title">Registration Guidelines</p>
             <ul className="info-list">
               <li>All fields marked with * are mandatory</li>
               <li>Vehicle plates should be in uppercase</li>
@@ -119,7 +139,7 @@ function AdminPanel() {
           </div>
 
           <div className="info-section">
-            <p className="info-title">🔒 Security Notes</p>
+            <p className="info-title">Security Notes</p>
             <ul className="info-list">
               <li>Only authenticated admins can register vehicles</li>
               <li>All entries are logged and audited</li>

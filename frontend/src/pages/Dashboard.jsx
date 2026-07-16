@@ -19,8 +19,6 @@ function Dashboard() {
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
 
-  // ---------------- CAMERA ----------------
-
   const startCamera = async () => {
     try {
       setCameraError("");
@@ -78,8 +76,6 @@ function Dashboard() {
     };
   }, []);
 
-  // ---------------- OCR SCAN ----------------
-
   const handleScan = async () => {
     if (!image) {
       setError("Please capture an image first.");
@@ -91,28 +87,28 @@ function Dashboard() {
       setError("");
       setScanAttempted(true);
 
-      // 1️⃣ Upload to Supabase Storage
+      // 1. Upload image to local backend storage
       const fileName = `plates/${Date.now()}-${image.name}`;
-
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from("plate-images")
         .upload(fileName, image);
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage
+      // 2. Get public URL for the uploaded image
+      const { data: urlData } = supabase.storage
         .from("plate-images")
         .getPublicUrl(fileName);
 
-      const imageUrl = data.publicUrl;
+      const imageUrl = urlData.publicUrl;
 
-      // 2️⃣ Get JWT
+      // 3. Get JWT from session
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session.access_token;
 
-      // 3️⃣ Call Edge Function
+      // 4. Call mock scan-plate endpoint
       const response = await fetch(
-        process.env.REACT_APP_EDGE_FUNCTION,
+        process.env.REACT_APP_API_URL + "/functions/scan-plate",
         {
           method: "POST",
           headers: {
@@ -132,7 +128,6 @@ function Dashboard() {
       setPlate(result.plate);
       setScanFailed(false);
       setLoading(false);
-
     } catch (err) {
       setError("OCR scanning failed. Please enter the plate number manually.");
       setScanFailed(true);
@@ -140,8 +135,6 @@ function Dashboard() {
       setLoading(false);
     }
   };
-
-  // ---------------- SEARCH VEHICLE ----------------
 
   const handleSearch = async () => {
     if (!plate.trim()) {
@@ -161,17 +154,15 @@ function Dashboard() {
       }
 
       setVehicle({
-        name: "Registered Owner",
+        name: data[0].full_name,
         department: data[0].department,
+        phone: data[0].phone,
       });
-
     } catch (err) {
       setError("Vehicle not found in the database.");
       setVehicle(null);
     }
   };
-
-  // ---------------- UI (UNCHANGED DESIGN) ----------------
 
   return (
     <div className="dashboard-container">
@@ -185,8 +176,6 @@ function Dashboard() {
       {error && <div className="alert alert-error">{error}</div>}
 
       <div className="dashboard-content">
-
-        {/* Camera Section */}
         <div className="card">
           <h3>Capture Vehicle Image</h3>
 
@@ -220,7 +209,7 @@ function Dashboard() {
                   Capture Image
                 </button>
                 <button onClick={stopCamera} className="btn-cancel">
-                  ✕ Cancel
+                  Cancel
                 </button>
               </div>
             </>
@@ -228,7 +217,7 @@ function Dashboard() {
 
           {image && (
             <div className="image-preview">
-              <p className="image-name">✓ {imageName}</p>
+              <p className="image-name">{"\u2713"} {imageName}</p>
               <button onClick={startCamera} className="btn-retake">
                 Retake Photo
               </button>
@@ -256,9 +245,7 @@ function Dashboard() {
               <input
                 type="text"
                 value={plate}
-                onChange={(e) =>
-                  setPlate(e.target.value.toUpperCase())
-                }
+                onChange={(e) => setPlate(e.target.value.toUpperCase())}
                 className="plate-input"
               />
             </div>
@@ -270,18 +257,27 @@ function Dashboard() {
 
         {vehicle && (
           <div className="card vehicle-card">
-            <h3>✓ Vehicle Information</h3>
+            <h3>{"\u2713"} Vehicle Information</h3>
+
             <div className="vehicle-details">
+              <div className="detail-item">
+                <span className="detail-label">Owner Name:</span>
+                <span className="detail-value">{vehicle.name}</span>
+              </div>
+
               <div className="detail-item">
                 <span className="detail-label">Department:</span>
                 <span className="detail-value">{vehicle.department}</span>
               </div>
+
               <div className="detail-item">
-                <span className="detail-label">Status:</span>
-                <span className="detail-value status-approved">
-                  ✓ Approved
-                </span>
+                <span className="detail-label">Phone:</span>
+                <span className="detail-value">{vehicle.phone}</span>
               </div>
+
+              <p className="security-note">
+                For additional information, contact Official Security Line
+              </p>
             </div>
           </div>
         )}
