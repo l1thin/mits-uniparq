@@ -19,10 +19,12 @@ const memoryUpload = multer({ storage: multer.memoryStorage(), limits: { fileSiz
 
 // POST /functions/scan-plate
 // Calls Supabase Edge Function for OCR
-router.post("/functions/scan-plate", authMiddleware, memoryUpload.single("image"), async (req, res) => {
+router.post("/functions/scan-plate", authMiddleware, async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: "Image file is required" });
+    const { imageUrl } = req.body;
+    
+    if (!imageUrl) {
+      return res.status(400).json({ error: "imageUrl is required" });
     }
 
     const { SUPABASE_EDGE_FUNCTION_URL, SUPABASE_ANON_KEY } = process.env;
@@ -32,24 +34,24 @@ router.post("/functions/scan-plate", authMiddleware, memoryUpload.single("image"
       return res.status(500).json({ error: "Server configuration error" });
     }
 
-    const base64Image = req.file.buffer.toString("base64");
-
     const response = await fetch(SUPABASE_EDGE_FUNCTION_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
       },
-      body: JSON.stringify({
-        image: base64Image,
-        mimeType: req.file.mimetype
-      })
+      body: JSON.stringify({ imageUrl })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`Edge function error (${response.status}):`, errorText);
-      return res.status(response.status).json({ error: "Failed to process image through edge function" });
+      try {
+        const errorJson = JSON.parse(errorText);
+        return res.status(response.status).json({ error: errorJson.error || "Edge function failed" });
+      } catch {
+        return res.status(response.status).json({ error: "Failed to process image through edge function" });
+      }
     }
 
     const data = await response.json();

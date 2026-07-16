@@ -9,72 +9,16 @@ function Dashboard() {
   const [vehicle, setVehicle] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [cameraActive, setCameraActive] = useState(false);
-  const [cameraLoading, setCameraLoading] = useState(false);
-  const [cameraError, setCameraError] = useState("");
   const [scanAttempted, setScanAttempted] = useState(false);
   const [scanFailed, setScanFailed] = useState(false);
 
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const streamRef = useRef(null);
-
-  const startCamera = async () => {
-    try {
-      setCameraError("");
-      setCameraLoading(true);
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
-      streamRef.current = stream;
-      setCameraActive(true);
-      setCameraLoading(false);
-    } catch (err) {
-      setCameraError(
-        "Unable to access camera. Please check permissions and try again."
-      );
-      setCameraLoading(false);
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setImageName(file.name);
     }
   };
-
-  useEffect(() => {
-    if (cameraActive && streamRef.current && videoRef.current) {
-      videoRef.current.srcObject = streamRef.current;
-    }
-  }, [cameraActive]);
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-    }
-    setCameraActive(false);
-  };
-
-  const captureImage = () => {
-    if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext("2d");
-      canvasRef.current.width = videoRef.current.videoWidth;
-      canvasRef.current.height = videoRef.current.videoHeight;
-      context.drawImage(videoRef.current, 0, 0);
-
-      canvasRef.current.toBlob((blob) => {
-        const file = new File([blob], "captured_image.jpg", {
-          type: "image/jpeg",
-        });
-        setImage(file);
-        setImageName("captured_image.jpg");
-        stopCamera();
-      });
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
-    };
-  }, []);
 
   const handleScan = async () => {
     if (!image) {
@@ -87,7 +31,7 @@ function Dashboard() {
       setError("");
       setScanAttempted(true);
 
-      // 1. Upload image to local backend storage
+      // 1. Upload image to Supabase Storage
       const fileName = `plates/${Date.now()}-${image.name}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("plate-images")
@@ -106,9 +50,10 @@ function Dashboard() {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session.access_token;
 
-      // 4. Call mock scan-plate endpoint
+      // 4. Call scan-plate endpoint with JSON
+      const API_URL = process.env.REACT_APP_API_URL || "http://localhost:54321";
       const response = await fetch(
-        process.env.REACT_APP_API_URL + "/functions/scan-plate",
+        API_URL + "/functions/scan-plate",
         {
           method: "POST",
           headers: {
@@ -129,7 +74,7 @@ function Dashboard() {
       setScanFailed(false);
       setLoading(false);
     } catch (err) {
-      setError("OCR scanning failed. Please enter the plate number manually.");
+      setError(`OCR Error: ${err.message}. Please enter the plate number manually.`);
       setScanFailed(true);
       setPlate("");
       setLoading(false);
@@ -179,52 +124,38 @@ function Dashboard() {
         <div className="card">
           <h3>Capture Vehicle Image</h3>
 
-          {cameraError && (
-            <div className="alert alert-error">{cameraError}</div>
-          )}
-
-          {!cameraActive && !image && (
-            <button
-              onClick={startCamera}
-              className="btn-camera"
-              disabled={cameraLoading}
-            >
-              {cameraLoading ? "Initializing Camera..." : "Take Photo"}
-            </button>
-          )}
-
-          {cameraActive && (
-            <>
-              <div className="camera-container">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="camera-feed"
-                />
-              </div>
-              <div className="camera-controls">
-                <button onClick={captureImage} className="btn-capture">
-                  Capture Image
-                </button>
-                <button onClick={stopCamera} className="btn-cancel">
-                  Cancel
-                </button>
-              </div>
-            </>
+          {!image && (
+            <div className="upload-container" style={{ margin: "20px 0", textAlign: "center" }}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                id="file-upload"
+                style={{ display: "none" }}
+              />
+              <label htmlFor="file-upload" className="btn-camera" style={{ display: 'inline-block', cursor: 'pointer', margin: 0 }}>
+                Upload Photo
+              </label>
+            </div>
           )}
 
           {image && (
             <div className="image-preview">
               <p className="image-name">{"\u2713"} {imageName}</p>
-              <button onClick={startCamera} className="btn-retake">
-                Retake Photo
-              </button>
+              <div className="upload-container" style={{ marginTop: "15px" }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  id="file-reupload"
+                  style={{ display: "none" }}
+                />
+                <label htmlFor="file-reupload" className="btn-retake" style={{ display: 'inline-block', cursor: 'pointer', margin: 0 }}>
+                  Upload Different Photo
+                </label>
+              </div>
             </div>
           )}
-
-          <canvas ref={canvasRef} style={{ display: "none" }} />
 
           <button onClick={handleScan} className="btn-scan" disabled={loading}>
             {loading ? (
