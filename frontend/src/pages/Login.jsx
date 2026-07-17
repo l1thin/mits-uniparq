@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import { supabase } from "../supabaseClient";
 
@@ -6,16 +7,17 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        window.location.href = "/dashboard";
+        navigate("/dashboard");
       }
     };
     checkSession();
-  }, []);
+  }, [navigate]);
 
   const handleLogin = async () => {
     if (rememberMe) {
@@ -34,13 +36,13 @@ function Login() {
       return;
     }
 
-    window.location.href = "/dashboard";
+    navigate("/dashboard");
   };
 
   return (
     <div className="login-wrapper">
       <img
-        src="/dept-logo.png"
+        src={process.env.PUBLIC_URL + "/dept-logo.png"}
         alt="Department Logo"
         className="dept-logo"
       />

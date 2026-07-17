@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "./Navbar.css";
 
 function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -23,13 +25,13 @@ function Navbar() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     window.localStorage.removeItem("remember_me");
-    window.location.href = "/";
+    navigate("/");
   };
 
   return (
     <nav className="navbar">
       <div className="navbar-left">
-        <img src="/logo-3.png" alt="University Logo" className="navbar-univ-logo" />
+        <img src={process.env.PUBLIC_URL + "/logo-3.png"} alt="University Logo" className="navbar-univ-logo" />
       </div>
 
       <div className="navbar-title">
@@ -63,7 +65,7 @@ function Navbar() {
             </>
           )}
         </div>
-        <img src="/dept-logo.png" alt="Department Logo" className="navbar-dept-logo" />
+        <img src={process.env.PUBLIC_URL + "/dept-logo.png"} alt="Department Logo" className="navbar-dept-logo" />
       </div>
     </nav>
   );
