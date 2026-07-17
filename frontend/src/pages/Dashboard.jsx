@@ -11,6 +11,9 @@ function Dashboard() {
   const [error, setError] = useState("");
   const [scanAttempted, setScanAttempted] = useState(false);
   const [scanFailed, setScanFailed] = useState(false);
+  const [showManualEntry, setShowManualEntry] = useState(false);
+  const [manualPlate, setManualPlate] = useState("");
+  const [manualPlateError, setManualPlateError] = useState("");
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -72,17 +75,21 @@ function Dashboard() {
     }
   };
 
-  const handleSearch = async () => {
-    if (!plate.trim()) {
+  const handleSearch = async (searchPlate = plate) => {
+    // If called directly from an event, searchPlate might be an Event object
+    const targetPlate = typeof searchPlate === 'string' ? searchPlate : plate;
+    
+    if (!targetPlate.trim()) {
       setError("Please enter a plate number.");
       return;
     }
 
     try {
+      setLoading(true);
       setError("");
 
       const { data, error } = await supabase.rpc("secure_lookup", {
-        input_plate: plate,
+        input_plate: targetPlate,
       });
 
       if (error || !data || data.length === 0) {
@@ -97,6 +104,8 @@ function Dashboard() {
     } catch (err) {
       setError("Vehicle not found in the database.");
       setVehicle(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -157,6 +166,64 @@ function Dashboard() {
               "Scan Number Plate"
             )}
           </button>
+
+          <div style={{ marginTop: '1rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
+            {!showManualEntry ? (
+              <button onClick={() => setShowManualEntry(true)} className="btn-scan" type="button" disabled={loading}>
+                Enter Plate Manually
+              </button>
+            ) : (
+              <div className="manual-entry-form">
+                <div className="form-group" style={{ marginBottom: '10px' }}>
+                  <input
+                    type="text"
+                    value={manualPlate}
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase().replace(/\s/g, "");
+                      setManualPlate(val);
+                      if (manualPlateError) setManualPlateError("");
+                    }}
+                    placeholder="e.g. KL07AB1234"
+                    className="plate-input"
+                    disabled={loading}
+                  />
+                  {manualPlateError && (
+                    <p style={{ color: '#dc2626', fontSize: '0.85rem', margin: '5px 0 0 0', textAlign: 'center' }}>
+                      {manualPlateError}
+                    </p>
+                  )}
+                </div>
+                <button 
+                  onClick={async () => {
+                    const regex = /^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$/;
+                    if (!regex.test(manualPlate)) {
+                      setManualPlateError("Invalid plate format. e.g. KL07AB1234");
+                      return;
+                    }
+                    setPlate(manualPlate);
+                    await handleSearch(manualPlate);
+                  }} 
+                  className="btn-scan" 
+                  disabled={loading}
+                  style={{ marginBottom: '10px' }}
+                >
+                  {loading ? (
+                    <><span className="spinner-small"></span> Looking Up...</>
+                  ) : (
+                    "Look Up Vehicle"
+                  )}
+                </button>
+                <div style={{ textAlign: 'center' }}>
+                  <span 
+                    onClick={() => { setShowManualEntry(false); setManualPlateError(""); setManualPlate(""); }} 
+                    style={{ cursor: 'pointer', color: '#666', fontSize: '0.9rem', textDecoration: 'underline', padding: '0.5rem' }}
+                  >
+                    Cancel
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {(plate || scanFailed) && (
