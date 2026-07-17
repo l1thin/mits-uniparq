@@ -12,32 +12,34 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      <img src="/logo-3.png" alt="University Logo" className="navbar-univ-logo left-logo" />
+      <div className="navbar-left">
+        <img src="/logo-3.png" alt="University Logo" className="navbar-univ-logo" />
 
-      <div className="navbar-actions">
-        {isLoggedIn && (
-          <>
-            <div className="dropdown-menu">
-              <button
-                className="user-menu-btn"
-                onClick={() => setShowDropdown(!showDropdown)}
-              >
-                &#128100;
-              </button>
+        <div className="navbar-actions">
+          {isLoggedIn && (
+            <>
+              <div className="dropdown-menu">
+                <button
+                  className="user-menu-btn"
+                  onClick={() => setShowDropdown(!showDropdown)}
+                >
+                  &#128100;
+                </button>
 
-              {showDropdown && (
-                <div className="dropdown-content">
-                  <a href="#profile" className="dropdown-item">Profile</a>
-                  <a href="#settings" className="dropdown-item">Settings</a>
-                  <div className="dropdown-divider"></div>
-                  <button onClick={handleLogout} className="dropdown-item logout">
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          </>
-        )}
+                {showDropdown && (
+                  <div className="dropdown-content">
+                    <a href="#profile" className="dropdown-item">Profile</a>
+                    <a href="#settings" className="dropdown-item">Settings</a>
+                    <div className="dropdown-divider"></div>
+                    <button onClick={handleLogout} className="dropdown-item logout">
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="navbar-title">

@@ -1,12 +1,11 @@
 .login-wrapper {
-  min-height: 100vh;
-  /* neutral white background */
-  background-color: #ffffff;
+  /* Use calc to account for the navbar roughly, preventing 100vh+navbar scrolling issues */
+  min-height: calc(100vh - 84px);
+  background-color: #f5f5f5; /* changed from white to match app background */
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  position: relative; /* for logo placement */
+  flex-direction: column;
+  padding: 2rem 1rem;
+  position: relative;
 }
 
 .dept-logo {
@@ -15,25 +14,20 @@
   left: 1rem;
   width: 80px;
   max-width: 15%;
-  opacity: 0.8;
-}
-/* main card styled as red pill */
-.login-card {
-  background: linear-gradient(135deg, var(--primary-red) 0%, var(--dark-red) 100%);
-  color: #ffffff;
-  border-radius: 12px;
-  padding: 3rem 2rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  animation: slideUp 0.5s ease-out;
+  opacity: 0.5;
+  z-index: 1;
 }
 
 .login-container {
   width: 100%;
   max-width: 420px;
+  margin: auto; /* Centers safely without top overflow */
+  z-index: 2;
 }
 
 .login-card {
-  background-color: #ffffff;
+  background: linear-gradient(135deg, var(--primary-red) 0%, var(--dark-red) 100%);
+  color: #ffffff;
   border-radius: 12px;
   padding: 3rem 2rem;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
@@ -57,7 +51,6 @@
 }
 
 .login-header h1 {
-  /* white title on red card */
   color: #ffffff;
   font-size: 2.5rem;
   font-weight: 700;
@@ -117,8 +110,8 @@
 .login-button {
   width: 100%;
   padding: 0.875rem;
-  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-  color: #ffffff;
+  background: var(--white);
+  color: var(--primary-red);
   border: none;
   border-radius: 6px;
   font-size: 1.05rem;
@@ -129,29 +122,15 @@
   margin-bottom: 1rem;
 }
 
-.login-button {
-  width: 100%;
-  padding: 0.875rem;
-  background: linear-gradient(135deg, var(--primary-red) 0%, var(--dark-red) 100%);
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  font-size: 1.05rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  letter-spacing: 0.5px;
-  margin-bottom: 1rem;
-}
 .login-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(14,165,164,0.22);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.22);
 }
 
-/* footer text styling */
 .login-footer {
   color: rgba(255,255,255,0.75);
   font-size: 0.85rem;
   text-align: center;
   margin-top: 1rem;
 }
+
