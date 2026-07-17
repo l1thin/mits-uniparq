@@ -1,9 +1,9 @@
 {
   "files": {
     "main.css": "/mits-uniparq/static/css/main.f459ee5d.css",
-    "main.js": "/mits-uniparq/static/js/main.42a35727.js",
+    "main.js": "/mits-uniparq/static/js/main.8606d60a.js",
     "static/css/803.6f4ab42c.chunk.css": "/mits-uniparq/static/css/803.6f4ab42c.chunk.css",
-    "static/js/803.7859b076.chunk.js": "/mits-uniparq/static/js/803.7859b076.chunk.js",
+    "static/js/803.e90b070a.chunk.js": "/mits-uniparq/static/js/803.e90b070a.chunk.js",
     "static/css/647.50af2939.chunk.css": "/mits-uniparq/static/css/647.50af2939.chunk.css",
     "static/js/647.5f30d8c5.chunk.js": "/mits-uniparq/static/js/647.5f30d8c5.chunk.js",
     "static/css/528.0101d018.chunk.css": "/mits-uniparq/static/css/528.0101d018.chunk.css",
@@ -14,9 +14,9 @@
     "service-worker.js": "/mits-uniparq/service-worker.js",
     "index.html": "/mits-uniparq/index.html",
     "main.f459ee5d.css.map": "/mits-uniparq/static/css/main.f459ee5d.css.map",
-    "main.42a35727.js.map": "/mits-uniparq/static/js/main.42a35727.js.map",
+    "main.8606d60a.js.map": "/mits-uniparq/static/js/main.8606d60a.js.map",
     "803.6f4ab42c.chunk.css.map": "/mits-uniparq/static/css/803.6f4ab42c.chunk.css.map",
-    "803.7859b076.chunk.js.map": "/mits-uniparq/static/js/803.7859b076.chunk.js.map",
+    "803.e90b070a.chunk.js.map": "/mits-uniparq/static/js/803.e90b070a.chunk.js.map",
     "647.50af2939.chunk.css.map": "/mits-uniparq/static/css/647.50af2939.chunk.css.map",
     "647.5f30d8c5.chunk.js.map": "/mits-uniparq/static/js/647.5f30d8c5.chunk.js.map",
     "528.0101d018.chunk.css.map": "/mits-uniparq/static/css/528.0101d018.chunk.css.map",
@@ -27,6 +27,6 @@
   },
   "entrypoints": [
     "static/css/main.f459ee5d.css",
-    "static/js/main.42a35727.js"
+    "static/js/main.8606d60a.js"
   ]
 }
