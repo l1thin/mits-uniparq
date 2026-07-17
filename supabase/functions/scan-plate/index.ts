@@ -22,31 +22,29 @@ serve(async (req) => {
       );
     }
 
-    // Call OCR.space API
-    const ocrApiKey = Deno.env.get("OCR_SPACE_API_KEY");
-    const ocrResponse = await fetch("https://api.ocr.space/parse/image", {
+    // Call Plate Recognizer ALPR API
+    const alprToken = Deno.env.get("PLATE_RECOGNIZER_TOKEN");
+
+    const formData = new FormData();
+    formData.append("upload_url", imageUrl);
+    formData.append("regions", "in"); // Optimizes detection for Indian plates
+
+    const alprResponse = await fetch("https://api.platerecognizer.com/v1/plate-reader/", {
       method: "POST",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": `Token ${alprToken}`,
       },
-      body: new URLSearchParams({
-        url: imageUrl,
-        apikey: ocrApiKey,
-      }),
+      body: formData,
     });
 
-    const ocrData = await ocrResponse.json();
+    const alprData = await alprResponse.json();
 
     let detectedText = "";
-    if (
-      ocrData.ParsedResults &&
-      ocrData.ParsedResults.length > 0 &&
-      ocrData.ParsedResults[0].ParsedText
-    ) {
-      detectedText = ocrData.ParsedResults[0].ParsedText.replace(/[^a-zA-Z0-9]/g, "");
+    if (alprData.results && alprData.results.length > 0) {
+      detectedText = alprData.results[0].plate.toUpperCase();
     }
 
-    if (detectedText.length < 3) {
+    if (detectedText.length < 6) {
       return new Response(
         JSON.stringify({ error: "Could not detect a valid plate (too short)" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
