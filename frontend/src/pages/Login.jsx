@@ -1,12 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Login.css";
 import { supabase } from "../supabaseClient";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        window.location.href = "/dashboard";
+      }
+    };
+    checkSession();
+  }, []);
 
   const handleLogin = async () => {
+    if (rememberMe) {
+      window.localStorage.setItem('remember_me', 'true');
+    } else {
+      window.localStorage.removeItem('remember_me');
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -50,6 +67,16 @@ function Login() {
               className="role-select"
               onChange={(e) => setPassword(e.target.value)}
             />
+          </div>
+
+          <div className="checkbox-group">
+            <input
+              type="checkbox"
+              id="rememberMe"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+            <label htmlFor="rememberMe">Remember me</label>
           </div>
 
           <button onClick={handleLogin} className="login-button">

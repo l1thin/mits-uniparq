@@ -42,9 +42,26 @@ const customFetch = async (url, options) => {
   }
 };
 
+const customStorage = {
+  getItem: (key) => {
+    return window.localStorage.getItem(key) || window.sessionStorage.getItem(key);
+  },
+  setItem: (key, value) => {
+    if (window.localStorage.getItem('remember_me') === 'true') {
+      window.localStorage.setItem(key, value);
+    } else {
+      window.sessionStorage.setItem(key, value);
+    }
+  },
+  removeItem: (key) => {
+    window.localStorage.removeItem(key);
+    window.sessionStorage.removeItem(key);
+  }
+};
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: window.localStorage,
+    storage: customStorage,
     persistSession: true,
   },
   global: {
