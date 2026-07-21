@@ -89,10 +89,9 @@ function Dashboard() {
       setLoading(true);
       setError("");
 
+      // Call the RPC function which joins vehicles, students, and faculty data
       const { data, error } = await supabase
-        .from('vehicles')
-        .select('*')
-        .eq('plate', targetPlate);
+        .rpc("secure_lookup", { input_plate: targetPlate });
 
       if (error || !data || data.length === 0) {
         throw new Error("Vehicle not found");
