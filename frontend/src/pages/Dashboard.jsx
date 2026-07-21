@@ -97,7 +97,7 @@ function Dashboard() {
         throw new Error("Vehicle not found");
       }
 
-      setVehicle(data[0]);
+      setVehicle({ plate: targetPlate, ...data[0] });
     } catch (err) {
       setError("Vehicle not found in the database.");
       setVehicle(null);
