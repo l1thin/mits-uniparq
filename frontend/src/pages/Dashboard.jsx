@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabaseClient";
+import ResultModal from "../components/ResultModal";
 import "./Dashboard.css";
 
 function Dashboard() {
@@ -88,19 +89,16 @@ function Dashboard() {
       setLoading(true);
       setError("");
 
-      const { data, error } = await supabase.rpc("secure_lookup", {
-        input_plate: targetPlate,
-      });
+      const { data, error } = await supabase
+        .from('vehicles')
+        .select('plate, student_name, branch, student_contact, faculty_advisor_name, faculty_advisor_contact')
+        .eq('plate', targetPlate);
 
       if (error || !data || data.length === 0) {
         throw new Error("Vehicle not found");
       }
 
-      setVehicle({
-        name: data[0].full_name,
-        department: data[0].department,
-        phone: data[0].phone,
-      });
+      setVehicle(data[0]);
     } catch (err) {
       setError("Vehicle not found in the database.");
       setVehicle(null);
@@ -244,32 +242,18 @@ function Dashboard() {
           </div>
         )}
 
-        {vehicle && (
-          <div className="card vehicle-card">
-            <h3>{"\u2713"} Vehicle Information</h3>
-
-            <div className="vehicle-details">
-              <div className="detail-item">
-                <span className="detail-label">Owner Name:</span>
-                <span className="detail-value">{vehicle.name}</span>
-              </div>
-
-              <div className="detail-item">
-                <span className="detail-label">Department:</span>
-                <span className="detail-value">{vehicle.department}</span>
-              </div>
-
-              <div className="detail-item">
-                <span className="detail-label">Phone:</span>
-                <span className="detail-value">{vehicle.phone}</span>
-              </div>
-
-              <p className="security-note">
-                For additional information, contact Official Security Line
-              </p>
-            </div>
-          </div>
-        )}
+        <ResultModal 
+          visible={!!vehicle} 
+          data={vehicle} 
+          onClose={() => setVehicle(null)}
+          onContact={(type) => {
+            if (type === 'call') {
+              window.alert(`📞 Calling ${vehicle.student_name || vehicle.name}...`);
+            } else {
+              window.alert(`💬 SMS sent to ${vehicle.student_name || vehicle.name}`);
+            }
+          }}
+        />
       </div>
     </div>
   );
