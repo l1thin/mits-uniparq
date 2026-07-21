@@ -245,13 +245,6 @@ function Dashboard() {
           visible={!!vehicle} 
           data={vehicle} 
           onClose={() => setVehicle(null)}
-          onContact={(type) => {
-            if (type === 'call') {
-              window.alert(`📞 Calling ${vehicle.student_name || vehicle.name}...`);
-            } else {
-              window.alert(`💬 SMS sent to ${vehicle.student_name || vehicle.name}`);
-            }
-          }}
         />
       </div>
     </div>

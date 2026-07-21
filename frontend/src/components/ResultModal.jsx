@@ -62,20 +62,6 @@ export default function ResultModal({ visible, data, onClose, onContact }) {
             </strong>
           </div>
         </div>
-
-        <div className="contact-actions" style={{ marginTop: '20px' }}>
-          <button className="btn-call" onClick={() => onContact('call')}>
-            <i data-lucide="phone"></i> Call
-          </button>
-          <button className="btn-msg" onClick={() => onContact('msg')}>
-            <i data-lucide="message-square"></i> SMS
-          </button>
-        </div>
-
-        <p style={{ marginTop: 15, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-          <i data-lucide="lock" size="12" style={{ display: 'inline', verticalAlign: 'middle' }}></i>
-          Privacy Mode: Number masked
-        </p>
       </div>
     </div>
   );
