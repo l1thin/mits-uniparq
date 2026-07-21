@@ -1,32 +1,32 @@
 {
   "files": {
     "main.css": "/mits-uniparq/static/css/main.f459ee5d.css",
-    "main.js": "/mits-uniparq/static/js/main.297de09e.js",
+    "main.js": "/mits-uniparq/static/js/main.883d836e.js",
     "static/css/803.6f4ab42c.chunk.css": "/mits-uniparq/static/css/803.6f4ab42c.chunk.css",
     "static/js/803.e90b070a.chunk.js": "/mits-uniparq/static/js/803.e90b070a.chunk.js",
     "static/css/647.50af2939.chunk.css": "/mits-uniparq/static/css/647.50af2939.chunk.css",
-    "static/js/647.eb0674e0.chunk.js": "/mits-uniparq/static/js/647.eb0674e0.chunk.js",
+    "static/js/647.717e45e0.chunk.js": "/mits-uniparq/static/js/647.717e45e0.chunk.js",
     "static/css/528.0101d018.chunk.css": "/mits-uniparq/static/css/528.0101d018.chunk.css",
     "static/js/528.b0c1359e.chunk.js": "/mits-uniparq/static/js/528.b0c1359e.chunk.js",
     "static/css/677.27c930eb.chunk.css": "/mits-uniparq/static/css/677.27c930eb.chunk.css",
-    "static/js/677.3c61aa59.chunk.js": "/mits-uniparq/static/js/677.3c61aa59.chunk.js",
+    "static/js/677.54824c3e.chunk.js": "/mits-uniparq/static/js/677.54824c3e.chunk.js",
     "static/js/453.20359781.chunk.js": "/mits-uniparq/static/js/453.20359781.chunk.js",
     "service-worker.js": "/mits-uniparq/service-worker.js",
     "index.html": "/mits-uniparq/index.html",
     "main.f459ee5d.css.map": "/mits-uniparq/static/css/main.f459ee5d.css.map",
-    "main.297de09e.js.map": "/mits-uniparq/static/js/main.297de09e.js.map",
+    "main.883d836e.js.map": "/mits-uniparq/static/js/main.883d836e.js.map",
     "803.6f4ab42c.chunk.css.map": "/mits-uniparq/static/css/803.6f4ab42c.chunk.css.map",
     "803.e90b070a.chunk.js.map": "/mits-uniparq/static/js/803.e90b070a.chunk.js.map",
     "647.50af2939.chunk.css.map": "/mits-uniparq/static/css/647.50af2939.chunk.css.map",
-    "647.eb0674e0.chunk.js.map": "/mits-uniparq/static/js/647.eb0674e0.chunk.js.map",
+    "647.717e45e0.chunk.js.map": "/mits-uniparq/static/js/647.717e45e0.chunk.js.map",
     "528.0101d018.chunk.css.map": "/mits-uniparq/static/css/528.0101d018.chunk.css.map",
     "528.b0c1359e.chunk.js.map": "/mits-uniparq/static/js/528.b0c1359e.chunk.js.map",
     "677.27c930eb.chunk.css.map": "/mits-uniparq/static/css/677.27c930eb.chunk.css.map",
-    "677.3c61aa59.chunk.js.map": "/mits-uniparq/static/js/677.3c61aa59.chunk.js.map",
+    "677.54824c3e.chunk.js.map": "/mits-uniparq/static/js/677.54824c3e.chunk.js.map",
     "453.20359781.chunk.js.map": "/mits-uniparq/static/js/453.20359781.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.f459ee5d.css",
-    "static/js/main.297de09e.js"
+    "static/js/main.883d836e.js"
   ]
 }
