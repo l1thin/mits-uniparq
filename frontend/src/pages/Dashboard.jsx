@@ -91,7 +91,7 @@ function Dashboard() {
 
       const { data, error } = await supabase
         .from('vehicles')
-        .select('plate, student_name, branch, student_contact, faculty_advisor_name, faculty_advisor_contact')
+        .select('*')
         .eq('plate', targetPlate);
 
       if (error || !data || data.length === 0) {
