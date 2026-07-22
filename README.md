@@ -1,53 +1,104 @@
 # UniParQ
 
-MITS Smart Parking Management System — a web-based solution designed to address obstructive parking issues on campus by enabling authorized security personnel to scan or enter vehicle number plates, retrieve owner details securely, and notify them efficiently while ensuring data privacy.
+MITS Smart Parking Management System — a web-based solution designed to address obstructive parking issues on campus by enabling authorized security personnel to scan or manually enter vehicle number plates, retrieve registered owner details securely, and contact them efficiently while ensuring data privacy.
+
+## Live App
+
+**[https://l1thin.github.io/mits-uniparq](https://l1thin.github.io/mits-uniparq)**
 
 ## Tech Stack
 
-| Layer       | Technology                                |
-| ----------- | ----------------------------------------- |
-| Frontend    | React 19 (Create React App)               |
-| Backend     | Node.js + Express                         |
-| Database    | PostgreSQL 17 (self-hosted via Docker)    |
-| Auth        | bcryptjs + jsonwebtoken (JWT)             |
-| File Upload | Multer (local disk)                       |
-
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) (v18 or later)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- Git
+| Layer          | Technology                                      |
+| -------------- | ----------------------------------------------- |
+| Frontend       | React 19 (Create React App)                     |
+| Routing        | React Router v7 (HashRouter)                    |
+| Database       | Supabase (PostgreSQL)                           |
+| Auth           | Supabase Auth (email/password)                  |
+| OCR / AI       | Plate Recognizer ALPR API (Indian plate region) |
+| Edge Functions | Supabase Edge Functions (Deno)                  |
+| Storage        | Supabase Storage (`plate-images` bucket)        |
+| PWA            | Workbox (service workers, offline support)      |
+| Deployment     | GitHub Pages                                    |
 
 ## Project Structure
 
 ```
 mits-uniparq/
-├── docker-compose.yml          # PostgreSQL container
-├── README.md
-├── system_overview.md          # Detailed architecture documentation
-├── frontend/                   # React SPA
-│   ├── .env
+├── .env                            # Supabase URL + anon key
+├── frontend/                       # React SPA (deployed to GitHub Pages)
 │   ├── package.json
+│   ├── public/                     # Static assets (logos, offline page)
 │   └── src/
-│       ├── App.js              # Routes
-│       ├── supabaseClient.js   # API client
-│       ├── pages/              # Login, Dashboard, AdminPanel
-│       └── components/         # ProtectedRoute, Navbar, ClearwayApp
-└── backend/                    # Express server
-    ├── .env
-    ├── server.js
-    ├── seed.js
-    ├── migration.sql
-    ├── seed.sql
-    ├── config/db.js
-    ├── middleware/auth.js
-    └── routes/
-        ├── auth.js
-        ├── vehicles.js
-        └── functions.js
+│       ├── App.js                  # Routes + lazy loading
+│       ├── supabaseClient.js       # Supabase client (with offline toast + remember-me storage)
+│       ├── index.js                # Entry point + service worker registration
+│       ├── pages/
+│       │   ├── Login.jsx           # Email/password login via Supabase Auth
+│       │   ├── Dashboard.jsx       # Image upload, OCR scan, vehicle lookup
+│       │   └── AdminPanel.jsx      # Register new vehicles
+│       └── components/
+│           ├── ProtectedRoute.jsx  # Session-based auth guard
+│           ├── Navbar.jsx          # Top nav with auth state + logout
+│           ├── ResultModal.jsx     # Vehicle info display (name, branch, phone, faculty advisor)
+│           ├── ClearwayApp.jsx     # Alternative dark-theme UI (mock data)
+│           ├── ScannerOverlay.jsx  # Animated scanner overlay
+│           └── ManualInput.jsx     # Bottom-sheet manual plate input
+└── supabase/
+    ├── config.toml                 # Supabase project config
+    ├── migrations/
+    │   └── 20260716000000_init_schema.sql   # DB schema (profiles, vehicles, secure_lookup)
+    └── functions/
+        └── scan-plate/
+            └── index.ts            # Edge Function: Plate Recognizer ALPR → secure_lookup RPC
 ```
 
-## Getting Started
+## How It Works
+
+### Security Personnel Flow
+
+1. **Login** — email + password via Supabase Auth
+2. **Upload** a vehicle image (or enter plate number manually)
+3. **Scan** — image is uploaded to Supabase Storage, then the `scan-plate` Edge Function sends it to Plate Recognizer ALPR (optimized for Indian plates)
+4. **Lookup** — the detected plate is passed to the `secure_lookup` RPC function which queries the `vehicles` table
+5. **Result** — a modal displays the student name, branch, vehicle model, phone number, and faculty advisor details
+
+### Admin Flow
+
+1. **Login** — email + password
+2. **Register vehicles** — fill in owner name, department, contact, and plate number
+3. Vehicle is inserted directly into the Supabase `vehicles` table
+
+## Database Schema
+
+### `profiles`
+
+| Column         | Type                     | Description                      |
+| -------------- | ------------------------ | -------------------------------- |
+| `id`           | UUID (PK)                | Auto-generated                   |
+| `email`        | TEXT (UNIQUE)            | Login email                      |
+| `password_hash`| TEXT                     | Bcrypt-hashed password           |
+| `role`         | TEXT (`security`/`admin`)| User role                        |
+| `created_at`   | TIMESTAMPTZ              | Auto-set on creation             |
+
+### `vehicles`
+
+| Column      | Type | Description                  |
+| ----------- | ---- | ---------------------------- |
+| `plate`     | TEXT (PK) | Vehicle registration number |
+| `full_name` | TEXT | Owner name                   |
+| `department`| TEXT | Department/branch            |
+| `phone`     | TEXT | Contact number               |
+
+### `secure_lookup` (RPC Function)
+
+Takes an `input_plate` parameter and returns the matching vehicle's `full_name`, `department`, and `phone`. Used by both the Edge Function and the Dashboard search.
+
+## Getting Started (Development)
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18 or later)
+- Git
 
 ### 1. Clone the repository
 
@@ -56,99 +107,70 @@ git clone https://github.com/l1thin/mits-uniparq.git
 cd mits-uniparq
 ```
 
-### 2. Start the database
-
-```bash
-docker compose up -d
-```
-
-This starts PostgreSQL 17 on port **54322** and automatically runs the schema migration and seed data on first startup.
-
-### 3. Start the backend
-
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-The Express server runs on `http://localhost:54321`. Nodemon auto-restarts on file changes.
-
-### 4. Seed the database (if needed)
-
-If you didn't use Docker auto-seed (e.g. you already had a PostgreSQL instance running), run:
-
-```bash
-cd backend
-npm run seed
-```
-
-### 5. Start the frontend
-
-Open a **new terminal**:
+### 2. Install frontend dependencies
 
 ```bash
 cd frontend
 npm install
+```
+
+### 3. Start the development server
+
+```bash
 npm start
 ```
 
-The React dev server runs on `http://localhost:3000`.
+Opens at `http://localhost:3000`.
 
-### 6. Open the app
+> **Note:** The frontend connects directly to the Supabase cloud project. No local backend or database is needed. The Supabase URL and anon key are configured in the root `.env` file.
 
-Navigate to `http://localhost:3000` in your browser.
+## Deploying
 
-## Test Credentials
+### Frontend (GitHub Pages)
 
-| Email                    | Password     | Role     |
-| ------------------------ | ------------ | -------- |
-| `admin@mits.ac.in`       | `admin123`   | Admin    |
-| `security@mits.ac.in`    | `security123`| Security |
+```bash
+cd frontend
+npm run deploy
+```
 
-## Routes
+This runs `gh-pages -d build` and deploys to `https://l1thin.github.io/mits-uniparq`.
 
-| Route        | Role     | Description                          |
-| ------------ | -------- | ------------------------------------ |
-| `/`          | Public   | Login page                           |
-| `/dashboard` | Security | Camera scan, plate lookup            |
-| `/admin`     | Admin    | Register new vehicles                |
-| `/clearway`  | Public   | Alternative dark-theme UI (mock data)|
+### Edge Functions (Supabase)
+
+```bash
+npx supabase functions deploy scan-plate
+```
+
+Set the Plate Recognizer API token as a Supabase secret:
+
+```bash
+npx supabase secrets set PLATE_RECOGNIZER_TOKEN=your_token_here
+```
 
 ## Pushing to GitHub
 
-Make sure you have the latest changes committed, then push to the `main` branch:
-
 ```bash
-# Switch to main and merge current work
-git checkout main
-git merge supabase
-
-# Push to GitHub
+git add .
+git commit -m "your message"
 git push origin main
-```
-
-To push a different branch:
-
-```bash
-git push origin supabase
 ```
 
 ## Environment Variables
 
-### Backend (`backend/.env`)
+| Variable               | Location     | Description                          |
+| ---------------------- | ------------ | ------------------------------------ |
+| `SUPABASE_URL`         | Root `.env`  | Supabase project URL                 |
+| `SUPABASE_ANON_KEY`    | Root `.env`  | Supabase publishable/anon key        |
+| `PLATE_RECOGNIZER_TOKEN` | Supabase Dashboard (Secrets) | Plate Recognizer API token |
 
-| Variable        | Description                          | Default                                    |
-| --------------- | ------------------------------------ | ------------------------------------------ |
-| `PORT`          | Server port                          | `54321`                                    |
-| `DATABASE_URL`  | PostgreSQL connection string         | `postgresql://postgres:local_secure_password@localhost:54322/mits-uniparq` |
-| `JWT_SECRET`    | Secret for signing JWTs              | `uniparq_super_secure_local_jwt_secret_2025` |
+## Routes
 
-### Frontend (`frontend/.env`)
-
-| Variable           | Description               | Default               |
-| ------------------ | ------------------------- | --------------------- |
-| `REACT_APP_API_URL`| Backend server URL        | `http://localhost:54321` |
+| Route        | Auth Required | Description                          |
+| ------------ | ------------- | ------------------------------------ |
+| `/#/`        | No            | Login page                           |
+| `/#/dashboard`| Yes          | Upload image, scan plate, lookup vehicle |
+| `/#/admin`   | Yes           | Register new vehicles                |
+| `/#/clearway`| No            | Alternative dark-theme UI (mock data)|
 
 ## Collaborators
 
