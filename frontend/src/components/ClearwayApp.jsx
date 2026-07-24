@@ -90,7 +90,7 @@ export default function ClearwayApp() {
         <section id="login-view" className={`view ${view === 'login' ? 'active' : ''}`}>
           <div className="logo-area">
             <i data-lucide="shield-check" className="logo-icon"></i>
-            <h1>UniParQ</h1>
+            <h1>MPMS Mits Parking Management System</h1>
             <p>Smart Campus Parking Security</p>
           </div>
 
