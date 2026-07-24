@@ -33,12 +33,6 @@ function Navbar() {
       <div className="navbar-left">
         <img src={process.env.PUBLIC_URL + "/logo-3.png"} alt="University Logo" className="navbar-univ-logo" />
       </div>
-
-      <div className="navbar-title">
-        <h1>Mits Parking Management System</h1>
-        <span className="brand-tagline">Vehicle Security System</span>
-      </div>
-
       <div className="right-group">
         <div className="navbar-actions">
           {isLoggedIn && (
