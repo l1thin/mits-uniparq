@@ -35,7 +35,7 @@ function Navbar() {
       </div>
 
       <div className="navbar-title">
-        <h1>MPMS Mits Parking Management System</h1>
+        <h1>Mits Parking Management System</h1>
         <span className="brand-tagline">Vehicle Security System</span>
       </div>
 

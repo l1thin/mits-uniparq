@@ -20,7 +20,7 @@ code {
     monospace;
 }
 
-/* Color Scheme (updated to a calmer teal/indigo palette for MPMS Mits Parking Management System) */
+/* Color Scheme (updated to a calmer teal/indigo palette for Mits Parking Management System) */
 :root {
   /* Primary color (red) */
   --primary-red: #dc2626; /* matches dashboard gradient start */
