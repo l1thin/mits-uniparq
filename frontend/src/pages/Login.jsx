@@ -49,8 +49,8 @@ function Login() {
       <div className="login-container">
         <div className="login-card">
           <div className="login-header">
-            <h1>Mits Parking Management System</h1>
-            <p className="login-subtitle">Vehicle Clearance System</p>
+            <h1>MPMS</h1>
+            <p className="login-subtitle">Mits Parking Management System</p>
           </div>
 
           <div className="form-group">

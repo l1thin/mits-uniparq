@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://mits-parking.com",
+  "homepage": "https://l1thin.github.io/mits-parking-management-system",
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",
     "@testing-library/dom": "^10.4.1",
