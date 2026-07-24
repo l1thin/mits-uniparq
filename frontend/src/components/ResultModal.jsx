@@ -53,7 +53,7 @@ export default function ResultModal({ visible, data, onClose }) {
         </div>
 
         <div style={rowStyle}>
-          <span style={labelStyle}>Student Name</span>
+          <span style={labelStyle}>Name</span>
           <span style={valueStyle}>{data.student_name || data.name || "Not available"}</span>
         </div>
         <div style={rowStyle}>
@@ -67,7 +67,7 @@ export default function ResultModal({ visible, data, onClose }) {
           </div>
         )}
         <div style={{ ...rowStyle, borderBottom: 'none' }}>
-          <span style={labelStyle}>Student Contact</span>
+          <span style={labelStyle}>Contact</span>
           <span style={valueStyle}>
             {data.student_contact || data.phone ? (
               <a href={`tel:${data.student_contact || data.phone}`} style={{ color: 'var(--primary-red)', textDecoration: 'none' }}>
